@@ -11,7 +11,18 @@ include(FetchContent)
 option(h5fortran_BUILD_TESTING "h5fortran internal tests")
 
 set(CMAKE_TLS_VERIFY true)
-set(FETCHCONTENT_UPDATES_DISCONNECTED_H5FORTRAN true)
+set_directory_properties(PROPERTIES EP_UPDATE_DISCONNECTED true)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  # will not take effect without FORCE
+  # CMAKE_BINARY_DIR in case it's used from FetchContent
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} CACHE PATH "Install top-level directory" FORCE)
+endif()
+
+# Find HDF5
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
+
+find_package(HDF5 COMPONENTS Fortran REQUIRED)
 
 # --- auto-ignore build directory
 if(NOT EXISTS ${PROJECT_BINARY_DIR}/.gitignore)
@@ -19,16 +30,7 @@ if(NOT EXISTS ${PROJECT_BINARY_DIR}/.gitignore)
 endif()
 
 # --- build h5fortran (requires HDF5 library)
-
-FetchContent_Declare(h5fortran
-GIT_REPOSITORY https://github.com/geospace-code/h5fortran.git
-GIT_TAG v4.6.3
-)
-
-FetchContent_MakeAvailable(H5FORTRAN)
-
-file(MAKE_DIRECTORY ${h5fortran_BINARY_DIR}/include)
-# avoids race condition on first configure
+include(h5fortran.cmake)
 
 # Example main program using h5fortran
 
